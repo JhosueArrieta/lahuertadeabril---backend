@@ -21,4 +21,5 @@ urlpatterns = [
     path('admin/', admin.site.urls),
     path('v1/users/', endpoints.users),
     path('v1/sessions/', endpoints.sessions),
+    path('v1/account/', endpoints.account),
 ]
