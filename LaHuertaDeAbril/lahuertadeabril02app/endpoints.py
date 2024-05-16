@@ -90,4 +90,17 @@ def sessions(request):
         session.save() 
         return JsonResponse({'message': 'Session closed successfully'}, status=200)
 
+@csrf_exempt    
+def account(request):
+    if request.method == 'GET': 
+        # Recuperamos token de la cabecera
+        try:
+            header_token = request.headers.get('sessionToken', None) 
+        except AttributeError: 
+            return JsonResponse({'error': 'Falta el token del cuerpo'}, status=401)
+        # Recupera la sesión del usuario correspondiente al token pasado en la bbdd
+        session = User.objects.get(token=header_token) 
+        json_response = session.to_jsonAccount() 
+        return JsonResponse(json_response, status=200) 
+
 
