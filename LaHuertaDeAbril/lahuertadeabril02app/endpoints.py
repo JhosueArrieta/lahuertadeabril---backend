@@ -52,5 +52,42 @@ def users(request):
     # Devuelve una respuesta JSON indicando que el usuario ha sido registrado correctamente
     return JsonResponse({"registered": True}, status=200)
 
+@csrf_exempt    
+def sessions(request):
+    if request.method == 'POST': # curl -X POST -d "{"email": "arrietacordova10@gmail.com", "password": "Carmenchu10"}" http://localhost:8000/v1/sessions/
+        # Sacamos los datos de la solicitud http y los guardamos en variables
+        try: 
+            body_json = json.loads(request.body)
+            json_email = body_json['email']
+            json_password = body_json['password']
+        except KeyError: 
+            return JsonResponse({'error': 'Request error or invalid data'}, status=400)
+        # Comprobamos que el email y contraseña existan en la bbdd
+        try: 
+            db_user = User.objects.get(email=json_email)
+        except User.DoesNotExist: 
+            return JsonResponse({'error': 'User not found in database'}, status=404) 
+        if bcrypt.checkpw(json_password.encode('utf8'), db_user.encrypted_password.encode('utf8')): 
+            pass
+        else:
+            json_password!=db_user.encrypted_password 
+            return JsonResponse({'error': 'Invalid credentials'}, status=401)
+        # Generamos un token random y lo asignamos
+        random_token = secrets.token_hex(10)
+        db_user.token = random_token 
+        db_user.save()  
+        return JsonResponse({"sessionToken": random_token}, status=200) 
+    
+    elif request.method == 'DELETE': # curl -X DELETE -H "sessionToken: tu_token_de_sesion" http://localhost:8000/v1/sessions/
+        # Comprobamos que haya un token en la cabecera 
+        try:
+            header_token = request.headers.get('sessionToken', None) 
+        except AttributeError:
+            return JsonResponse({'error': 'Body token missing'}, status=401)
+        # Cerramos la sesión asignando NONE al campo del token de la bbdd
+        session = User.objects.get(token=header_token) 
+        session.token = None
+        session.save() 
+        return JsonResponse({'message': 'Session closed successfully'}, status=200)
 
 
