@@ -1,5 +1,5 @@
 from django.http import JsonResponse
-from .models import User
+from .models import User, Supermercado1Producto, Supermercado2Producto
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth.decorators import login_required
 import json
@@ -138,3 +138,56 @@ def password(request): # curl -X POST -H "Content-Type: application/json" -H "se
     user.save()
     return JsonResponse({'message': 'Password updated successfully'}, status=200)
 
+@csrf_exempt
+def search_product1(request):
+    if request.method != 'GET':
+        return JsonResponse({'error': 'HTTP method not supported'}, status=405)
+
+    # Obtener el parámetro de búsqueda de la URL
+    try:
+        search_str = request.GET["q"]
+    except KeyError:
+        return JsonResponse({'error': 'Missing query parameter'}, status=400)
+
+    # Buscar productos que coincidan con la cadena de búsqueda
+    productos1 = Supermercado1Producto.objects.filter(nombre__icontains=search_str)
+
+    # Crear una lista de productos en formato JSON
+    productos_list1 = []
+    for producto in productos1:
+        productos_list1.append({
+            'id': producto.id,
+            'nombre': producto.nombre,
+            'precio': float(producto.precio),
+            'origen': producto.origen,
+            'imagen_url': producto.imagen_url,
+        })
+
+    return JsonResponse({'productos': productos_list1}, status=200)
+
+@csrf_exempt
+def search_product2(request):
+    if request.method != 'GET':
+        return JsonResponse({'error': 'HTTP method not supported'}, status=405)
+
+    # Obtener el parámetro de búsqueda de la URL
+    try:
+        search_str = request.GET["q"]
+    except KeyError:
+        return JsonResponse({'error': 'Missing query parameter'}, status=400)
+
+    # Buscar productos que coincidan con la cadena de búsqueda
+    productos2 = Supermercado2Producto.objects.filter(nombre__icontains=search_str)
+
+    # Crear una lista de productos en formato JSON
+    productos_list2 = []
+    for producto in productos2:
+        productos_list2.append({
+            'id': producto.id,
+            'nombre': producto.nombre,
+            'precio': float(producto.precio),
+            'origen': producto.origen,
+            'imagen_url': producto.imagen_url,
+        })
+
+    return JsonResponse({'productos': productos_list2}, status=200)
