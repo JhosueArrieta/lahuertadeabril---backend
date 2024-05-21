@@ -79,28 +79,62 @@ def sessions(request):
         return JsonResponse({"sessionToken": random_token}, status=200) 
     
     elif request.method == 'DELETE': # curl -X DELETE -H "sessionToken: tu_token_de_sesion" http://localhost:8000/v1/sessions/
-        # Comprobamos que haya un token en la cabecera 
-        try:
-            header_token = request.headers.get('sessionToken', None) 
-        except AttributeError:
-            return JsonResponse({'error': 'Body token missing'}, status=401)
+        # Obtener el token de sesión del encabezado
+        sessionToken = request.headers.get('sessionToken')
+        # Verificar si el token de sesión está presente
+        if not sessionToken:
+            return JsonResponse({'error': 'Header token missing'}, status=401)
         # Cerramos la sesión asignando NONE al campo del token de la bbdd
-        session = User.objects.get(token=header_token) 
+        session = User.objects.get(token=sessionToken) 
         session.token = None
         session.save() 
         return JsonResponse({'message': 'Session closed successfully'}, status=200)
 
 @csrf_exempt    
 def account(request):
-    if request.method == 'GET': 
-        # Recuperamos token de la cabecera
-        try:
-            header_token = request.headers.get('sessionToken', None) 
-        except AttributeError: 
-            return JsonResponse({'error': 'Falta el token del cuerpo'}, status=401)
+    if request.method == 'GET': # curl -X GET -H "sessionToken: tu_token_de_sesion" http://localhost:8000/v1/account/
+        # Obtener el token de sesión del encabezado
+        sessionToken = request.headers.get('sessionToken')
+        # Verificar si el token de sesión está presente
+        if not sessionToken:
+            return JsonResponse({'error': 'Header token missing'}, status=401)
         # Recupera la sesión del usuario correspondiente al token pasado en la bbdd
-        session = User.objects.get(token=header_token) 
+        session = User.objects.get(token=sessionToken) 
+
         json_response = session.to_jsonAccount() 
         return JsonResponse(json_response, status=200) 
 
+@csrf_exempt
+def password(request): # curl -X POST -H "Content-Type: application/json" -H "sessionToken: 3cf6c274600c384522bc" -d "{\"current_password\": \"Carmenchu10\", \"new_password\": \"CCarmenchu10\"}" http://localhost:8000/v1/password/
+    if request.method != 'POST':
+        return JsonResponse({'error': 'HTTP method not supported'}, status=405)
+    # Obtener el cuerpo de la solicitud JSON
+    try:
+        body_json = json.loads(request.body)
+        current_password = body_json['current_password']
+        new_password = body_json['new_password']
+    except KeyError:
+        return JsonResponse({'error': 'Missing parameter in body'}, status=400)
+    # Obtener el token de sesión del encabezado
+    sessionToken = request.headers.get('sessionToken')
+    # Verificar si el token de sesión está presente
+    if not sessionToken:
+        return JsonResponse({'error': 'Header token missing'}, status=401)
+    # Obtener el usuario con el token de sesión proporcionado
+    try:
+        user = User.objects.get(token=sessionToken)
+    except User.DoesNotExist:
+        return JsonResponse({'error': 'Invalid sessionToken'}, status=401)
+
+    # Verificar la contraseña actual
+    if not bcrypt.checkpw(current_password.encode('utf8'), user.encrypted_password.encode('utf8')):
+        return JsonResponse({'error': 'Invalid credentials'}, status=401)
+
+    # Generar el hash para la nueva contraseña
+    hashed_new_password = bcrypt.hashpw(new_password.encode('utf8'), bcrypt.gensalt()).decode('utf8')
+
+    # Actualizar la contraseña del usuario
+    user.encrypted_password = hashed_new_password
+    user.save()
+    return JsonResponse({'message': 'Password updated successfully'}, status=200)
 
