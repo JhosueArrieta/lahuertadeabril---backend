@@ -23,4 +23,6 @@ urlpatterns = [
     path('v1/sessions/', endpoints.sessions),
     path('v1/account/', endpoints.account),
     path('v1/password/', endpoints.password),
+    path('v1/search_product1/', endpoints.search_product1),
+    path('v1/search_product2/', endpoints.search_product2),
 ]
