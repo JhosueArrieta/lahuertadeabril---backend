@@ -17,12 +17,14 @@ class Supermercado1Producto(models.Model):
     id = models.AutoField(primary_key=True)
     nombre = models.CharField(max_length=200)
     precio = models.DecimalField(max_digits=10, decimal_places=2)
+    origen = models.CharField(max_length=200, default='Galicia')
     imagen_url = models.URLField()
 
 class Supermercado2Producto(models.Model):
     id = models.AutoField(primary_key=True)
     nombre = models.CharField(max_length=200)
     precio = models.DecimalField(max_digits=10, decimal_places=2)
+    origen = models.CharField(max_length=200, default='Galicia')
     imagen_url = models.URLField()
 
 class FavSupermercado1(models.Model):
