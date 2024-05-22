@@ -1,5 +1,5 @@
 from django.http import JsonResponse
-from .models import User, Supermercado1Producto, Supermercado2Producto
+from .models import User, Supermercado1Producto, Supermercado2Producto, FavSupermercado1, FavSupermercado2
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth.decorators import login_required
 import json
@@ -233,3 +233,65 @@ def info_product2(request, product_id):
     }
 
     return JsonResponse(producto_info, status=200)
+
+@csrf_exempt
+def add_to_favourites1(request, product_id):
+    if request.method != 'PUT': # curl -X PUT http://localhost:8000/v1/favourites_1/1/ -H "sessionToken: 4bdd10df43e964b49235"
+        return JsonResponse({'error': 'HTTP method not supported'}, status=405)
+
+    # Obtener el token de sesión del encabezado
+    sessionToken = request.headers.get('sessionToken')
+    # Verificar si el token de sesión está presente
+    if not sessionToken:
+        return JsonResponse({'error': 'Header token missing'}, status=401)
+
+    # Obtener el usuario correspondiente al token
+    try:
+        user = User.objects.get(token=sessionToken)
+    except User.DoesNotExist:
+        return JsonResponse({'error': 'Invalid token'}, status=401)
+
+    # Obtener el producto del Supermercado1 y comprobar que exista
+    try:
+        producto = Supermercado1Producto.objects.get(id=product_id)
+    except Supermercado1Producto.DoesNotExist:
+        return JsonResponse({'error': 'Product not found in this supermarket'}, status=404)
+
+    # Verificar si el producto ya está en la lista de favoritos
+    if FavSupermercado1.objects.filter(user=user, producto=producto).exists():
+        return JsonResponse({'message': 'Product already in favorites'}, status=200)
+
+    # Agregar el producto a la lista de favoritos del usuario
+    FavSupermercado1.objects.create(user=user, producto=producto)
+    return JsonResponse({'message': 'Product added to favorites'}, status=201)
+
+@csrf_exempt
+def add_to_favourites2(request, product_id):
+    if request.method != 'PUT': # curl -X PUT http://localhost:8000/v1/favourites_2/1/ -H "sessionToken: 4bdd10df43e964b49235"
+        return JsonResponse({'error': 'HTTP method not supported'}, status=405)
+
+    # Obtener el token de sesión del encabezado
+    sessionToken = request.headers.get('sessionToken')
+    # Verificar si el token de sesión está presente
+    if not sessionToken:
+        return JsonResponse({'error': 'Header token missing'}, status=401)
+
+    # Obtener el usuario correspondiente al token
+    try:
+        user = User.objects.get(token=sessionToken)
+    except User.DoesNotExist:
+        return JsonResponse({'error': 'Invalid token'}, status=401)
+
+    # Obtener el producto del Supermercado2 y comprobar que exista
+    try:
+        producto = Supermercado2Producto.objects.get(id=product_id)
+    except Supermercado2Producto.DoesNotExist:
+        return JsonResponse({'error': 'Product not found in this supermarket'}, status=404)
+
+    # Verificar si el producto ya está en la lista de favoritos
+    if FavSupermercado2.objects.filter(user=user, producto=producto).exists():
+        return JsonResponse({'message': 'Product already in favorites'}, status=200)
+
+    # Agregar el producto a la lista de favoritos del usuario
+    FavSupermercado2.objects.create(user=user, producto=producto)
+    return JsonResponse({'message': 'Product added to favorites'}, status=201)
