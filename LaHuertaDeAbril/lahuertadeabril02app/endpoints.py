@@ -10,7 +10,7 @@ import requests
 
 @csrf_exempt
 def users(request):
-    if request.method != 'POST':
+    if request.method != 'POST': # curl -X POST -H "Content-Type: application/json" -d "{\"name\": \"Jhosue\", \"mail\": \"arrietacordova10@gmail.com\", \"password\": \"Carmenchu10\", \"birthdate\": \"2004-04-03\"}" http://localhost:8000/v1/users/
         # Si la solicitud no es de tipo POST, devuelve un error indicando que el método HTTP no es compatible
         return JsonResponse({"error": "HTTP method not supported"}, status=405)
 
@@ -105,8 +105,8 @@ def account(request):
         return JsonResponse(json_response, status=200) 
 
 @csrf_exempt
-def password(request): # curl -X POST -H "Content-Type: application/json" -H "sessionToken: 3cf6c274600c384522bc" -d "{\"current_password\": \"Carmenchu10\", \"new_password\": \"CCarmenchu10\"}" http://localhost:8000/v1/password/
-    if request.method != 'POST':
+def password(request): 
+    if request.method != 'POST': # curl -X POST -H "Content-Type: application/json" -H "sessionToken: 3cf6c274600c384522bc" -d "{\"current_password\": \"Carmenchu10\", \"new_password\": \"CCarmenchu10\"}" http://localhost:8000/v1/password/
         return JsonResponse({'error': 'HTTP method not supported'}, status=405)
     # Obtener el cuerpo de la solicitud JSON
     try:
@@ -139,8 +139,8 @@ def password(request): # curl -X POST -H "Content-Type: application/json" -H "se
     return JsonResponse({'message': 'Password updated successfully'}, status=200)
 
 @csrf_exempt
-def search_product1(request):
-    if request.method != 'GET':
+def search_product1(request): 
+    if request.method != 'GET': # curl -X GET http://localhost:8000/v1/search_product1/?q=manzanas
         return JsonResponse({'error': 'HTTP method not supported'}, status=405)
 
     # Obtener el parámetro de búsqueda de la URL
@@ -167,7 +167,7 @@ def search_product1(request):
 
 @csrf_exempt
 def search_product2(request):
-    if request.method != 'GET':
+    if request.method != 'GET': # curl -X GET http://localhost:8000/v1/search_product2/?q=manzanas
         return JsonResponse({'error': 'HTTP method not supported'}, status=405)
 
     # Obtener el parámetro de búsqueda de la URL
@@ -191,3 +191,24 @@ def search_product2(request):
         })
 
     return JsonResponse({'productos': productos_list2}, status=200)
+
+@csrf_exempt
+def info_product1(request, product_id): 
+    if request.method != 'GET': # curl -X GET http://localhost:8000/v1/info_product1/1/
+        return JsonResponse({'error': 'HTTP method not supported'}, status=405)
+
+    try:
+        # Obtenemos el producto del Supermercado1 y comprobamos que exista
+        producto = Supermercado1Producto.objects.get(id=product_id)
+    except Supermercado1Producto.DoesNotExist:
+        return JsonResponse({'error': 'Product not found in this supermarket'}, status=404)
+
+    # Creamos la respuesta json a mostrar
+    producto_info = {
+        'nombre': producto.nombre,
+        'precio': float(producto.precio),
+        'origen': producto.origen,
+        'imagen_url': producto.imagen_url,
+    }
+
+    return JsonResponse(producto_info, status=200)

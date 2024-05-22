@@ -25,4 +25,5 @@ urlpatterns = [
     path('v1/password/', endpoints.password),
     path('v1/search_product1/', endpoints.search_product1),
     path('v1/search_product2/', endpoints.search_product2),
+    path('v1/info_product1/<int:product_id>/', endpoints.info_product1),
 ]
