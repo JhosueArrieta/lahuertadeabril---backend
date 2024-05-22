@@ -212,3 +212,24 @@ def info_product1(request, product_id):
     }
 
     return JsonResponse(producto_info, status=200)
+
+@csrf_exempt
+def info_product2(request, product_id): 
+    if request.method != 'GET': # curl -X GET http://localhost:8000/v1/info_product2/1/
+        return JsonResponse({'error': 'HTTP method not supported'}, status=405)
+
+    try:
+        # Obtenemos el producto del Supermercado2 y comprobamos que exista
+        producto = Supermercado2Producto.objects.get(id=product_id)
+    except Supermercado2Producto.DoesNotExist:
+        return JsonResponse({'error': 'Product not found in this supermarket'}, status=404)
+
+    # Creamos la respuesta json a mostrar
+    producto_info = {
+        'nombre': producto.nombre,
+        'precio': float(producto.precio),
+        'origen': producto.origen,
+        'imagen_url': producto.imagen_url,
+    }
+
+    return JsonResponse(producto_info, status=200)
