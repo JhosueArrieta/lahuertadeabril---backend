@@ -152,6 +152,10 @@ def search_product1(request):
     # Buscar productos que coincidan con la cadena de búsqueda
     productos1 = Supermercado1Producto.objects.filter(nombre__icontains=search_str)
 
+    # Verificar si no se encontraron productos
+    if not productos1.exists():
+        return JsonResponse({'message': 'Product not found in this supermarket'}, status=404)
+    
     # Crear una lista de productos en formato JSON
     productos_list1 = []
     for producto in productos1:
@@ -167,7 +171,7 @@ def search_product1(request):
 
 @csrf_exempt
 def search_product2(request):
-    if request.method != 'GET': # curl -X GET http://localhost:8000/v1/search_product2/?q=manzanas
+    if request.method != 'GET': # curl -X GET http://localhost:8000/v1/search_product2/?q=patatas
         return JsonResponse({'error': 'HTTP method not supported'}, status=405)
 
     # Obtener el parámetro de búsqueda de la URL
@@ -178,6 +182,10 @@ def search_product2(request):
 
     # Buscar productos que coincidan con la cadena de búsqueda
     productos2 = Supermercado2Producto.objects.filter(nombre__icontains=search_str)
+
+    # Verificar si no se encontraron productos
+    if not productos2.exists():
+        return JsonResponse({'message': 'Product not found in this supermarket'}, status=404)
 
     # Crear una lista de productos en formato JSON
     productos_list2 = []
@@ -236,7 +244,7 @@ def info_product2(request, product_id):
 
 @csrf_exempt
 def add_to_favourites1(request, product_id):
-    if request.method != 'PUT': # curl -X PUT http://localhost:8000/v1/favourites_1/1/ -H "sessionToken: 4bdd10df43e964b49235"
+    if request.method != 'PUT': # curl -X PUT http://localhost:8000/v1/add_favourites_1/1/ -H "sessionToken: 4bdd10df43e964b49235"
         return JsonResponse({'error': 'HTTP method not supported'}, status=405)
 
     # Obtener el token de sesión del encabezado
@@ -267,7 +275,7 @@ def add_to_favourites1(request, product_id):
 
 @csrf_exempt
 def add_to_favourites2(request, product_id):
-    if request.method != 'PUT': # curl -X PUT http://localhost:8000/v1/favourites_2/1/ -H "sessionToken: 4bdd10df43e964b49235"
+    if request.method != 'PUT': # curl -X PUT http://localhost:8000/v1/add_favourites_2/1/ -H "sessionToken: 4bdd10df43e964b49235"
         return JsonResponse({'error': 'HTTP method not supported'}, status=405)
 
     # Obtener el token de sesión del encabezado
@@ -295,3 +303,74 @@ def add_to_favourites2(request, product_id):
     # Agregar el producto a la lista de favoritos del usuario
     FavSupermercado2.objects.create(user=user, producto=producto)
     return JsonResponse({'message': 'Product added to favorites'}, status=201)
+
+@csrf_exempt
+def favourites1(request): # curl -X GET -H "sessionToken: 4bdd10df43e964b49235" http://localhost:8000/v1/favourites_1/
+    if request.method != 'GET':
+        return JsonResponse({'error': 'HTTP method not supported'}, status=405)
+ 
+    # Obtener el token de sesión del encabezado
+    sessionToken = request.headers.get('sessionToken')
+    # Verificar si el token de sesión está presente
+    if not sessionToken:
+        return JsonResponse({'error': 'Header token missing'}, status=401)
+
+    # Obtener el usuario correspondiente al token
+    try:
+        user = User.objects.get(token=sessionToken)
+    except User.DoesNotExist:
+        return JsonResponse({'error': 'Invalid token'}, status=401)
+
+    # Obtener los productos favoritos del usuario de la tabla FavSupermercado1
+    favourites = FavSupermercado1.objects.filter(user=user)
+
+    # Crear una lista de productos favoritos en formato JSON
+    favourites_list = []
+    for fav in favourites:
+        # Obtener los detalles del producto
+        producto = fav.producto
+        favourites_list.append({
+            'nombre': producto.nombre,
+            'precio': float(producto.precio),
+            'origen': producto.origen,
+            'imagen_url': producto.imagen_url,
+        })
+
+    return JsonResponse({'favourites': favourites_list}, status=200)
+
+@csrf_exempt
+def favourites2(request): # curl -X GET -H "sessionToken: 4bdd10df43e964b49235" http://localhost:8000/v1/favourites_2/
+    if request.method != 'GET':
+        return JsonResponse({'error': 'HTTP method not supported'}, status=405)
+
+    # Obtener el token de sesión del encabezado
+    sessionToken = request.headers.get('sessionToken')
+    # Verificar si el token de sesión está presente
+    if not sessionToken:
+        return JsonResponse({'error': 'Header token missing'}, status=401)
+
+    # Obtener el usuario correspondiente al token
+    try:
+        user = User.objects.get(token=sessionToken)
+    except User.DoesNotExist:
+        return JsonResponse({'error': 'Invalid token'}, status=401)
+
+    # Obtener los productos favoritos del usuario de la tabla FavSupermercado1
+    favourites = FavSupermercado2.objects.filter(user=user)
+
+    # Crear una lista de productos favoritos en formato JSON
+    favourites_list = []
+    for fav in favourites:
+        # Obtener los detalles del producto
+        producto = fav.producto
+        favourites_list.append({
+            'nombre': producto.nombre,
+            'precio': float(producto.precio),
+            'origen': producto.origen,
+            'imagen_url': producto.imagen_url,
+        })
+
+    return JsonResponse({'favourites': favourites_list}, status=200)
+
+# COMPROBAR EL SIGUIENTE DÍA SI LAS LISTAS EN VACÍAS PS MOSTRAR MENSAJE QUE ESE PRODUCTO NO SE ENCUENTRA 
+# EN LOS SUPERMERCADOS EN LOS GETSEARCH
