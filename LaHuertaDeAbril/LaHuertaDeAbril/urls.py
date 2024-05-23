@@ -27,6 +27,9 @@ urlpatterns = [
     path('v1/search_product2/', endpoints.search_product2),
     path('v1/info_product1/<int:product_id>/', endpoints.info_product1),
     path('v1/info_product2/<int:product_id>/', endpoints.info_product2),
-    path('v1/favourites_1/<int:product_id>/', endpoints.add_to_favourites1),
-    path('v1/favourites_2/<int:product_id>/', endpoints.add_to_favourites2),
+    path('v1/add_favourites_1/<int:product_id>/', endpoints.add_to_favourites1),
+    path('v1/add_favourites_2/<int:product_id>/', endpoints.add_to_favourites2),
+    path('v1/favourites_1/', endpoints.favourites1),
+    path('v1/favourites_2/', endpoints.favourites2),
+
 ]
