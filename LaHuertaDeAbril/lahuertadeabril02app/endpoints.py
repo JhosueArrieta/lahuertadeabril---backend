@@ -330,6 +330,7 @@ def favourites1(request): # curl -X GET -H "sessionToken: 4bdd10df43e964b49235" 
         # Obtener los detalles del producto
         producto = fav.producto
         favourites_list.append({
+            'id': producto.id,
             'nombre': producto.nombre,
             'precio': float(producto.precio),
             'origen': producto.origen,
@@ -364,6 +365,7 @@ def favourites2(request): # curl -X GET -H "sessionToken: 4bdd10df43e964b49235" 
         # Obtener los detalles del producto
         producto = fav.producto
         favourites_list.append({
+            'id': producto.id,
             'nombre': producto.nombre,
             'precio': float(producto.precio),
             'origen': producto.origen,
